@@ -357,7 +357,7 @@ span 的方式（例如用行内 Widget 渲染）。
 欢迎提交 issue 和 pull request。提交 pull request 前请先运行：
 
 ```bash
-flutter analyze --no-fatal-infos
+flutter analyze
 flutter test
 ```
 

@@ -365,7 +365,7 @@ to render with inline widgets).
 Issues and pull requests are welcome. Please run
 
 ```bash
-flutter analyze --no-fatal-infos
+flutter analyze
 flutter test
 ```
 

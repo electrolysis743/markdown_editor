@@ -1,3 +1,4 @@
+// ignore: deprecated_member_use
 import 'package:flutter/material.dart';
 import 'package:wysiwyg_markdown_editor/wysiwyg_markdown_editor.dart';
 import 'package:markdown/markdown.dart' as md;
