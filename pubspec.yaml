@@ -1,0 +1,47 @@
+name: markdown_editor
+description: >-
+  An extensible, WYSIWYG Markdown editor for Flutter built on top of
+  flutter_markdown_plus. Every visual element, command, builder and syntax rule
+  can be replaced by the host application.
+version: 0.1.0
+# Open source under GPL-3.0. See LICENSE.
+#
+# Before publishing, point these to the public repository. Publishing works
+# without them, but pub.dev warns about the missing metadata.
+# repository: https://github.com/<your-org>/markdown_editor
+# homepage: https://github.com/<your-org>/markdown_editor
+environment:
+  sdk: ^3.4.0
+  flutter: ">=3.27.1"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_markdown_plus: ^1.0.12
+  markdown: ^7.3.1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+
+topics:
+  - markdown
+  - editor
+  - wysiwyg
+  - widgets
+  - text
+
+screenshots:
+  - description: >-
+      WYSIWYG Markdown editing: syntax markers are dimmed, headings, quotes,
+      code blocks, lists and links are styled in place.
+    path: doc/images/editor.png
+  - description: >-
+      Split view: the editing surface and the flutter_markdown_plus preview
+      share the same theme.
+    path: doc/images/split.png
+
+flutter:
+  # This package ships no assets. Markdown rendering of remote images is
+  # delegated to the host application through MarkdownEditorBuilders.imageBuilder.

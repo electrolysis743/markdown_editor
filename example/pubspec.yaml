@@ -1,0 +1,23 @@
+name: markdown_editor_example
+description: Demonstrates every extension point of the markdown_editor package.
+publish_to: 'none'
+version: 0.1.0
+
+environment:
+  sdk: ^3.4.0
+  flutter: ">=3.27.1"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  markdown: ^7.3.1
+  markdown_editor:
+    path: ../
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+
+flutter:
+  uses-material-design: true
