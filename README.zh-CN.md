@@ -1,4 +1,4 @@
-# markdown_editor
+# wysiwyg_markdown_editor
 
 [![License: GPL-3.0](https://img.shields.io/badge/license-GPL--3.0-blue.svg)](LICENSE)
 
@@ -48,7 +48,7 @@ API 中可替换的对象：应用可以重新设置某个 token 的样式、添
 
 ```yaml
 dependencies:
-  markdown_editor:
+  wysiwyg_markdown_editor:
     git: https://github.com/electrolysis743/markdown_editor.git
 ```
 
@@ -56,7 +56,7 @@ dependencies:
 
 ```dart
 import 'package:flutter/material.dart';
-import 'package:markdown_editor/markdown_editor.dart';
+import 'package:wysiwyg_markdown_editor/wysiwyg_markdown_editor.dart';
 
 void main() => runApp(const MaterialApp(home: EditorPage()));
 
@@ -80,7 +80,7 @@ class _EditorPageState extends State<EditorPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('markdown_editor')),
+      appBar: AppBar(title: const Text('Markdown Editor')),
       body: MarkdownEditor(
         controller: controller,
         mode: MarkdownEditorMode.split,
@@ -320,7 +320,7 @@ controller.history;
 
 ```
 lib/
-  markdown_editor.dart              # public barrel
+  wysiwyg_markdown_editor.dart      # public barrel
   src/
     analysis/                       # line analyzer, inline rules, span engine
     commands/                       # MarkdownCommand + built-in commands
@@ -371,7 +371,7 @@ flutter test
 
 ## 许可证
 
-Copyright (C) 2026 markdown_editor contributors.
+Copyright (C) 2026 wysiwyg_markdown_editor contributors.
 
 本程序是自由软件：你可以依据自由软件基金会发布的 GNU 通用公共许可证（GPL）第 3
 版或（按你的选择）任何更新版本的条款，重新分发和/或修改它。

@@ -23,7 +23,7 @@ class _MarkdownEditorExampleAppState extends State<MarkdownEditorExampleApp> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'markdown_editor',
+      title: 'Markdown Editor',
       debugShowCheckedModeBanner: false,
       themeMode: _themeMode,
       theme: ThemeData(
@@ -75,7 +75,7 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('markdown_editor'),
+        title: const Text('Markdown Editor'),
         actions: <Widget>[
           IconButton(
             tooltip: 'Toggle theme',

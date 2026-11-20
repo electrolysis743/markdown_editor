@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:markdown_editor/markdown_editor.dart';
+import 'package:wysiwyg_markdown_editor/wysiwyg_markdown_editor.dart';
 
 void main() {
   const MarkdownLineAnalyzer analyzer = DefaultMarkdownLineAnalyzer();

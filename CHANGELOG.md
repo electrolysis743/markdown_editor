@@ -5,6 +5,19 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.0] - 2026-11-21
+
+### Changed
+
+- **Renamed the package to `wysiwyg_markdown_editor`.** pub.dev rejects names
+  that are too similar to an existing package (`markdowneditor`), so the import
+  path is now `package:wysiwyg_markdown_editor/wysiwyg_markdown_editor.dart`.
+  The public API (widget, controller, theme, builders, commands and helpers) is
+  unchanged; only the package name, the barrel file name and the example package
+  name changed.
+- The example application's window and app bar title is now "Markdown Editor"
+  instead of the package name.
+
 ## [0.1.0] - 2026-11-21
 
 Initial release.

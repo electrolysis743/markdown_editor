@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:markdown_editor/markdown_editor.dart';
+import 'package:wysiwyg_markdown_editor/wysiwyg_markdown_editor.dart';
 import 'package:markdown/markdown.dart' as md;
 
 import 'customizations.dart';

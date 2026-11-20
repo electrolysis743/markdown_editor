@@ -1,6 +1,6 @@
 # Architecture
 
-This document describes the internals of `markdown_editor` and, more
+This document describes the internals of `wysiwyg_markdown_editor` and, more
 importantly, which stage to replace when you need a behaviour the package does
 not provide.
 
@@ -13,11 +13,12 @@ A WYSIWYG Markdown editor can be built in two ways:
 2. edit the Markdown source and *render it in place*, keeping the source as the
    single source of truth.
 
-`markdown_editor` takes the second approach. The document is a `String` held by
-a `MarkdownEditorController` (a `TextEditingController`). Every character the
-user types is the character saved to disk. That makes round-tripping lossless,
-keeps diffs meaningful, and lets the editor reuse Flutter's mature text editing
-stack for selection, IME, autofill, gestures and accessibility.
+`wysiwyg_markdown_editor` takes the second approach. The document is a `String`
+held by a `MarkdownEditorController` (a `TextEditingController`). Every
+character the user types is the character saved to disk. That makes
+round-tripping lossless, keeps diffs meaningful, and lets the editor reuse
+Flutter's mature text editing stack for selection, IME, autofill, gestures and
+accessibility.
 
 The cost is that syntax markers cannot be removed from the layout: the span
 text must stay byte-identical to the controller text, otherwise caret offsets

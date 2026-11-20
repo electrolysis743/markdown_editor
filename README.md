@@ -1,4 +1,4 @@
-# markdown_editor
+# wysiwyg_markdown_editor
 
 [![License: GPL-3.0](https://img.shields.io/badge/license-GPL--3.0-blue.svg)](LICENSE)
 
@@ -53,7 +53,7 @@ without forking the package.
 
 ```yaml
 dependencies:
-  markdown_editor:
+  wysiwyg_markdown_editor:
     git: https://github.com/electrolysis743/markdown_editor.git
 ```
 
@@ -61,7 +61,7 @@ dependencies:
 
 ```dart
 import 'package:flutter/material.dart';
-import 'package:markdown_editor/markdown_editor.dart';
+import 'package:wysiwyg_markdown_editor/wysiwyg_markdown_editor.dart';
 
 void main() => runApp(const MaterialApp(home: EditorPage()));
 
@@ -85,7 +85,7 @@ class _EditorPageState extends State<EditorPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('markdown_editor')),
+      appBar: AppBar(title: const Text('Markdown Editor')),
       body: MarkdownEditor(
         controller: controller,
         mode: MarkdownEditorMode.split,
@@ -327,7 +327,7 @@ controller.history;
 
 ```
 lib/
-  markdown_editor.dart              # public barrel
+  wysiwyg_markdown_editor.dart      # public barrel
   src/
     analysis/                       # line analyzer, inline rules, span engine
     commands/                       # MarkdownCommand + built-in commands
@@ -381,7 +381,7 @@ before opening a pull request.
 
 ## License
 
-Copyright (C) 2026 markdown_editor contributors.
+Copyright (C) 2026 wysiwyg_markdown_editor contributors.
 
 This program is free software: you can redistribute it and/or modify it under
 the terms of the GNU General Public License as published by the Free Software

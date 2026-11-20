@@ -1,7 +1,7 @@
-# markdown_editor example
+# wysiwyg_markdown_editor example
 
 A runnable demonstration of every extension point in
-[`markdown_editor`](../).
+[`wysiwyg_markdown_editor`](../).
 
 ```bash
 flutter pub get

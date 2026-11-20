@@ -6,7 +6,7 @@
 ///
 /// ```dart
 /// import 'package:flutter/material.dart';
-/// import 'package:markdown_editor/markdown_editor.dart';
+/// import 'package:wysiwyg_markdown_editor/wysiwyg_markdown_editor.dart';
 ///
 /// void main() => runApp(const MaterialApp(home: EditorPage()));
 ///

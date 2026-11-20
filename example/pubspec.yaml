@@ -1,7 +1,8 @@
-name: markdown_editor_example
-description: Demonstrates every extension point of the markdown_editor package.
+name: wysiwyg_markdown_editor_example
+description: Demonstrates every extension point of the wysiwyg_markdown_editor
+  package.
 publish_to: 'none'
-version: 0.1.0
+version: 0.2.0
 
 environment:
   sdk: ^3.4.0
@@ -11,7 +12,7 @@ dependencies:
   flutter:
     sdk: flutter
   markdown: ^7.3.1
-  markdown_editor:
+  wysiwyg_markdown_editor:
     path: ../
 
 dev_dependencies:
