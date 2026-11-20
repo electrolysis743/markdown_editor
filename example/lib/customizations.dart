@@ -153,7 +153,7 @@ class InsertSignatureCommand extends MarkdownCommand {
   @override
   void execute(MarkdownCommandContext context) {
     context.controller.insertBlock(
-      '---\n\n_Written with markdown_editor_',
+      '---\n\n_Written with wysiwyg_markdown_editor_',
     );
   }
 }

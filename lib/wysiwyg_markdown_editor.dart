@@ -30,7 +30,7 @@
 ///   @override
 ///   Widget build(BuildContext context) {
 ///     return Scaffold(
-///       appBar: AppBar(title: const Text('markdown_editor')),
+///       appBar: AppBar(title: const Text('Markdown Editor')),
 ///       body: MarkdownEditor(
 ///         controller: controller,
 ///         mode: MarkdownEditorMode.split,

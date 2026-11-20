@@ -5,11 +5,8 @@ description: >-
   can be replaced by the host application.
 version: 0.2.0
 # Open source under GPL-3.0. See LICENSE.
-#
-# Before publishing, point these to the public repository. Publishing works
-# without them, but pub.dev warns about the missing metadata.
-# repository: https://github.com/<your-org>/wysiwyg_markdown_editor
-# homepage: https://github.com/<your-org>/wysiwyg_markdown_editor
+repository: https://github.com/electrolysis743/markdown_editor
+# homepage: https://github.com/electrolysis743/markdown_editor
 environment:
   sdk: ^3.4.0
   flutter: ">=3.27.1"

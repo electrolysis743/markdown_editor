@@ -1,6 +1,6 @@
 /// The sample document used by both example pages.
 const String kSampleMarkdown = '''
-# markdown_editor
+# wysiwyg_markdown_editor
 
 An **extensible** Markdown editor for Flutter, built on
 [flutter_markdown_plus](https://pub.dev/packages/flutter_markdown_plus).
