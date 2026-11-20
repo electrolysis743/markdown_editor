@@ -9,7 +9,7 @@ jobs:
   analyze-and-test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: subosito/flutter-action@v2
         with:
           channel: stable
@@ -17,11 +17,15 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
       - name: Analyze
-        run: flutter analyze
+        # Infos are advisory: newer SDKs report deprecations (for example
+        # package:flutter/material.dart superseded by package:material_ui) that
+        # cannot be fixed while supporting Flutter >=3.27.1. Errors and warnings
+        # still fail the build.
+        run: flutter analyze --no-fatal-infos
       - name: Test
         run: flutter test
       - name: Analyze example
         working-directory: example
         run: |
           flutter pub get
-          flutter analyze
+          flutter analyze --no-fatal-infos

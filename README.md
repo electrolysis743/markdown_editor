@@ -2,6 +2,8 @@
 
 [![License: GPL-3.0](https://img.shields.io/badge/license-GPL--3.0-blue.svg)](LICENSE)
 
+**English** | [简体中文](README.zh-CN.md)
+
 An **extensible, WYSIWYG Markdown editor** for Flutter, built on top of
 [`flutter_markdown_plus`](https://pub.flutter-io.cn/packages/flutter_markdown_plus).
 
@@ -52,7 +54,7 @@ without forking the package.
 ```yaml
 dependencies:
   markdown_editor:
-    git: https://example.com/your-org/markdown_editor.git
+    git: https://github.com/electrolysis743/markdown_editor.git
 ```
 
 > The package is published under GPL-3.0. See [LICENSE](LICENSE).
@@ -363,7 +365,7 @@ to render with inline widgets).
 Issues and pull requests are welcome. Please run
 
 ```bash
-flutter analyze
+flutter analyze --no-fatal-infos
 flutter test
 ```
 

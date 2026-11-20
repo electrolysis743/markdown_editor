@@ -36,3 +36,4 @@ Initial release.
 - `MarkdownEditorExtensions` replacing the analyzer, span engine, inline rules
   and line decorators.
 - Example application demonstrating every extension point.
+- A Simplified Chinese translation of the README (`README.zh-CN.md`).
