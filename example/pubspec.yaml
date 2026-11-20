@@ -2,7 +2,7 @@ name: wysiwyg_markdown_editor_example
 description: Demonstrates every extension point of the wysiwyg_markdown_editor
   package.
 publish_to: 'none'
-version: 0.2.0
+version: 0.2.1
 
 environment:
   sdk: ^3.4.0

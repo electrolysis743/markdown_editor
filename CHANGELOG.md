@@ -5,6 +5,15 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.1] - 2026-11-21
+
+### Changed
+
+- Added the `repository` field to `pubspec.yaml`, so pub.dev links to the
+  source instead of warning about missing package metadata.
+- The example page, sample document and API docs now use the new package name
+  instead of the old `markdown_editor` label.
+
 ## [0.2.0] - 2026-11-21
 
 ### Changed

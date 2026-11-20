@@ -3,7 +3,7 @@ description: >-
   An extensible, WYSIWYG Markdown editor for Flutter built on top of
   flutter_markdown_plus. Every visual element, command, builder and syntax rule
   can be replaced by the host application.
-version: 0.2.0
+version: 0.2.1
 # Open source under GPL-3.0. See LICENSE.
 repository: https://github.com/electrolysis743/markdown_editor
 # homepage: https://github.com/electrolysis743/markdown_editor
