@@ -52,9 +52,14 @@ class MarkdownEditingSurface extends StatefulWidget {
   final ScrollController? scrollController;
 
   /// Overrides the theme from the surrounding [MarkdownEditorScope].
+  ///
+  /// The theme is also published back to the text field, so the spans it renders
+  /// and the decorations painted behind them always come from the same theme.
   final MarkdownEditorTheme? theme;
 
   /// Overrides the extension set from the surrounding [MarkdownEditorScope].
+  ///
+  /// Like [theme], it is published back to the text field.
   final MarkdownEditorExtensions? extensions;
 
   /// Whether the document can be edited.
@@ -169,7 +174,7 @@ class _MarkdownEditingSurfaceState extends State<MarkdownEditingSurface> {
       selectionHandleColor: theme.cursorColor,
     );
 
-    return Theme(
+    final Widget content = Theme(
       data: materialTheme.copyWith(textSelectionTheme: selectionTheme),
       child: GestureDetector(
         behavior: HitTestBehavior.translucent,
@@ -200,6 +205,9 @@ class _MarkdownEditingSurfaceState extends State<MarkdownEditingSurface> {
                                 textDirection: Directionality.of(context),
                                 scrollController: _scrollController,
                                 textWidth: textWidth,
+                                showSyntax: widget.showSyntax,
+                                activeLineRange:
+                                    widget.controller.selectionLineRange,
                                 repaint: _scrollController,
                               ),
                             );
@@ -281,6 +289,17 @@ class _MarkdownEditingSurfaceState extends State<MarkdownEditingSurface> {
           ),
         ),
       ),
+    );
+    // A theme or extension set passed to the surface must also reach the text
+    // field: `buildTextSpan` resolves them from the scope, and the decorations
+    // are laid out from those same spans.
+    if (widget.theme == null && widget.extensions == null) {
+      return content;
+    }
+    return MarkdownEditorScope(
+      theme: theme,
+      extensions: extensions,
+      child: content,
     );
   }
 }

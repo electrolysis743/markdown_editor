@@ -40,6 +40,9 @@ class MarkdownBlockBox {
   String toString() => 'MarkdownBlockBox(${block.kind.name}, $rect)';
 }
 
+/// Returns `0` for a context that cannot measure text.
+double _unmeasuredCaretX(int offset) => 0;
+
 /// Everything a [MarkdownLineDecorator] needs to paint.
 class MarkdownDecorationContext {
   /// Creates a decoration context.
@@ -51,6 +54,11 @@ class MarkdownDecorationContext {
     required this.blockBoxes,
     required this.size,
     required this.textDirection,
+    this.textScaler = TextScaler.noScaling,
+    this.showSyntax = true,
+    this.baseStyle = const TextStyle(),
+    this.activeLineRange,
+    this.caretX = _unmeasuredCaretX,
   });
 
   /// The canvas to paint on.
@@ -73,6 +81,45 @@ class MarkdownDecorationContext {
 
   /// The text direction of the document.
   final TextDirection textDirection;
+
+  /// The text scaler of the editing surface, for decorators that paint text.
+  final TextScaler textScaler;
+
+  /// Whether the editing surface styles Markdown syntax.
+  ///
+  /// When `false` (source mode) decorators must not replace source markers:
+  /// the field renders them literally.
+  final bool showSyntax;
+
+  /// The base text style of the document, as used by the text field.
+  ///
+  /// Decorators that paint text merge their own style over it, so replacement
+  /// glyphs use the same font, size and color as the document.
+  final TextStyle baseStyle;
+
+  /// The source range of the lines whose syntax markers are revealed, if any.
+  ///
+  /// Markers outside this range are hidden by
+  /// `MarkdownMarkerVisibility.hiddenExceptActiveLine`, which is what lets
+  /// decorators draw the rendered form of a marker on those lines only.
+  final TextRange? activeLineRange;
+
+  /// The horizontal position of the caret placed at [offset] in the laid out
+  /// text.
+  ///
+  /// Decorators use it to place a replacement glyph exactly over a hidden
+  /// marker. It returns `0` for contexts that cannot measure text.
+  final double Function(int offset) caretX;
+
+  /// Whether [line] belongs to the lines being edited and therefore shows its
+  /// own syntax markers.
+  bool isActiveLine(MarkdownLineInfo line) {
+    final TextRange? active = activeLineRange;
+    if (active == null) {
+      return false;
+    }
+    return line.end >= active.start && line.start <= active.end;
+  }
 
   /// Returns the line box at [lineIndex], or `null` when it is not painted.
   MarkdownLineBox? lineBoxAt(int lineIndex) {

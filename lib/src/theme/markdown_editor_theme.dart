@@ -160,18 +160,27 @@ class MarkdownEditorTheme {
   ///
   /// The editor uses this for the editing surface, so a theme that only
   /// overrides colors still inherits the ambient typography.
+  ///
+  /// Color and line height are always filled in: `TextField` merges its style
+  /// over the ambient body typography, and the decoration painter lays out the
+  /// same text on its own. Both must agree on them, otherwise the decorations
+  /// drift vertically from the text.
   TextStyle resolveBody(BuildContext context) {
-    final TextStyle? explicit = body;
-    if (explicit != null) {
-      return explicit;
-    }
     final ThemeData material = Theme.of(context);
-    final TextStyle base =
-        material.textTheme.bodyMedium ?? const TextStyle(fontSize: 14);
-    return base.copyWith(
-      color: base.color ?? material.colorScheme.onSurface,
-      height: base.height ?? 1.5,
-    );
+    final TextStyle? explicit = body;
+    final TextStyle resolved;
+    if (explicit != null) {
+      resolved = explicit.color != null
+          ? explicit
+          : explicit.copyWith(color: material.colorScheme.onSurface);
+    } else {
+      final TextStyle base =
+          material.textTheme.bodyMedium ?? const TextStyle(fontSize: 14);
+      resolved = base.copyWith(color: base.color ?? material.colorScheme.onSurface);
+    }
+    return resolved.height == null
+        ? resolved.copyWith(height: material.textTheme.bodyLarge?.height ?? 1.5)
+        : resolved;
   }
 
   /// The base text style of the document.
@@ -269,6 +278,10 @@ class MarkdownEditorTheme {
   final double listIndent;
 
   /// How syntax markers are displayed.
+  ///
+  /// [MarkdownMarkerVisibility.hiddenExceptActiveLine] is the "formatted until
+  /// edited" mode: markers collapse to zero width and reappear only on the
+  /// lines that contain the selection.
   final MarkdownMarkerVisibility markerVisibility;
 
   /// Font family used by inline code and fenced code blocks.
@@ -351,6 +364,7 @@ class MarkdownEditorTheme {
               decoration: TextDecoration.underline,
             );
       case MarkdownTokenType.linkUrl:
+      case MarkdownTokenType.linkDestination:
         return linkUrl ?? TextStyle(color: (base.color ?? const Color(0xFF000000)).withValues(alpha: 0.6));
       case MarkdownTokenType.imageAlt:
         return emphasis ?? const TextStyle(fontStyle: FontStyle.italic);
@@ -373,11 +387,17 @@ class MarkdownEditorTheme {
   }
 
   /// The style applied to a syntax marker, honoring [markerVisibility].
+  ///
+  /// For [MarkdownMarkerVisibility.hiddenExceptActiveLine] this returns the
+  /// *revealed* style used on the line being edited; markers on the other lines
+  /// are collapsed with [collapsedMarker] by the span engine.
   TextStyle markerStyle(TextStyle base) {
     final Color baseColor = base.color ?? const Color(0xFF000000);
     final Color color = switch (markerVisibility) {
       MarkdownMarkerVisibility.visible => baseColor,
-      MarkdownMarkerVisibility.dimmed => baseColor.withValues(alpha: 0.32),
+      MarkdownMarkerVisibility.dimmed ||
+      MarkdownMarkerVisibility.hiddenExceptActiveLine =>
+        baseColor.withValues(alpha: 0.32),
       MarkdownMarkerVisibility.hidden => const Color(0x00000000),
     };
     return const TextStyle(
@@ -386,6 +406,40 @@ class MarkdownEditorTheme {
       decoration: TextDecoration.none,
     ).merge(TextStyle(color: color)).merge(marker);
   }
+
+  /// The style that collapses a marker without removing its characters.
+  ///
+  /// A zero font size makes the glyphs take no space and paint nothing while
+  /// the span text stays identical to the document source, which is what keeps
+  /// caret and selection offsets valid. Used by
+  /// [MarkdownMarkerVisibility.hiddenExceptActiveLine]; custom span engines can
+  /// reuse it to implement the same behaviour.
+  static const TextStyle collapsedMarker = TextStyle(
+    fontSize: 0,
+    height: 1,
+    letterSpacing: 0,
+    wordSpacing: 0,
+    color: Color(0x00000000),
+    backgroundColor: Color(0x00000000),
+    decoration: TextDecoration.none,
+    fontWeight: FontWeight.w400,
+    fontStyle: FontStyle.normal,
+  );
+
+  /// The style that hides a marker while keeping its width.
+  ///
+  /// Used by [MarkdownMarkerVisibility.hiddenExceptActiveLine] for the block
+  /// prefixes (list bullets, ordered numbers, task checkboxes, block quote
+  /// markers) that the decoration layer redraws in their rendered form: the
+  /// characters stay transparent, so the text keeps exactly the position the
+  /// rendered output gives it.
+  static const TextStyle hiddenMarker = TextStyle(
+    color: Color(0x00000000),
+    backgroundColor: Color(0x00000000),
+    decoration: TextDecoration.none,
+    fontWeight: FontWeight.w400,
+    fontStyle: FontStyle.normal,
+  );
 
   /// Derives a `flutter_markdown_plus` style sheet from this theme.
   ///

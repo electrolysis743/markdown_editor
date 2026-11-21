@@ -9,6 +9,7 @@ TextSpan buildSpan(
   List<MarkdownInlineRule> extraRules = const <MarkdownInlineRule>[],
   MarkdownLineAnalyzer analyzer = const DefaultMarkdownLineAnalyzer(),
   bool showSyntax = true,
+  TextRange? activeLineRange,
 }) {
   final MarkdownDocumentLayout layout = analyzer.analyze(text);
   final MarkdownEditorExtensions extensions =
@@ -21,9 +22,17 @@ TextSpan buildSpan(
       baseStyle: const TextStyle(fontSize: 16, color: Color(0xFF000000)),
       rules: extensions.activeInlineRules,
       showSyntax: showSyntax,
+      activeLineRange: activeLineRange,
     ),
   );
 }
+
+/// Whether the character at [offset] is collapsed to zero width.
+bool collapsedAt(TextSpan root, int offset) => styleAt(root, offset)?.fontSize == 0;
+
+/// Whether the character at [offset] is transparent but keeps its width.
+bool hiddenAt(TextSpan root, int offset) =>
+    styleAt(root, offset)?.color?.a == 0 && styleAt(root, offset)?.fontSize != 0;
 
 TextStyle? styleAt(TextSpan root, int offset) {
   int cursor = 0;
@@ -116,8 +125,123 @@ void main() {
       expect(styleAt(hidden, 0)!.color!.a, 0);
     });
 
-    test('applies heading sizes per level', () {
-      const String text = '# One\n## Two\n### Three';
+    group('hiddenExceptActiveLine', () {
+      const MarkdownEditorTheme theme = MarkdownEditorTheme(
+        markerVisibility: MarkdownMarkerVisibility.hiddenExceptActiveLine,
+      );
+
+      test('collapses markers outside the active line only', () {
+        const String text = '# Title\n**bold**';
+        final int secondLine = text.indexOf('**');
+        final TextSpan span = buildSpan(
+          text,
+          theme: theme,
+          activeLineRange: TextRange(start: secondLine, end: text.length),
+        );
+
+        expect(span.toPlainText(), text);
+        // `#` of the heading collapses so the heading starts at the margin.
+        expect(collapsedAt(span, 0), isTrue);
+        // The markers of the line being edited stay visible and faded.
+        expect(collapsedAt(span, secondLine), isFalse);
+        expect(styleAt(span, secondLine)!.color!.a, lessThan(1));
+        expect(collapsedAt(span, secondLine + 2), isFalse);
+        expect(styleAt(span, secondLine + 2)?.fontWeight, FontWeight.w700);
+      });
+
+      test('collapses every marker when no line is active', () {
+        const String text = 'a `code` b';
+        final TextSpan span = buildSpan(text, theme: theme);
+
+        expect(span.toPlainText(), text);
+        expect(collapsedAt(span, 2), isTrue);
+        expect(collapsedAt(span, 7), isTrue);
+        expect(styleAt(span, 3)?.fontFamily, isNotNull);
+      });
+
+      test('keeps styling content on collapsed lines', () {
+        const String text = '~~gone~~';
+        final TextSpan span = buildSpan(text, theme: theme);
+
+        expect(collapsedAt(span, 0), isTrue);
+        expect(
+          styleAt(span, 3)?.decoration,
+          TextDecoration.lineThrough,
+        );
+      });
+
+      test('hides block prefixes but keeps their width', () {
+        const String text = '-   item\n- [x] done\n> quoted';
+        final TextSpan span = buildSpan(text, theme: theme);
+
+        expect(span.toPlainText(), text);
+        // The bullet is invisible but keeps one character of width, so the text
+        // sits exactly where the rendered bullet and its gap put it.
+        expect(hiddenAt(span, 0), isTrue);
+        expect(collapsedAt(span, 0), isFalse);
+        expect(hiddenAt(span, 1), isTrue);
+
+        // The checkbox is hidden too: the decoration layer draws it.
+        final int checkbox = text.indexOf('[x]');
+        expect(hiddenAt(span, text.indexOf('- [x]')), isTrue);
+        expect(hiddenAt(span, checkbox), isTrue);
+
+        // Same for the block quote marker, so the painted bar stays clear.
+        expect(hiddenAt(span, text.indexOf('> quoted')), isTrue);
+      });
+
+      test('collapses link and image destinations but not autolinks', () {
+        const String text =
+            'see [docs](https://x.dev) ![logo](https://y.dev/i.png) <https://z.dev>';
+        final TextSpan span = buildSpan(text, theme: theme);
+
+        expect(span.toPlainText(), text);
+        expect(collapsedAt(span, text.indexOf('docs')), isFalse);
+        expect(collapsedAt(span, text.indexOf('https://x.dev')), isTrue);
+        expect(collapsedAt(span, text.indexOf('logo')), isFalse);
+        expect(collapsedAt(span, text.indexOf('https://y.dev')), isTrue);
+        // An autolink shows its URL, so the URL keeps its width.
+        expect(collapsedAt(span, text.indexOf('https://z.dev')), isFalse);
+      });
+
+      test('hides block quote markers without shifting the text', () {
+        const String text = '> quoted';
+        final TextSpan span = buildSpan(text, theme: theme);
+
+        expect(hiddenAt(span, 0), isTrue);
+        expect(hiddenAt(span, 1), isTrue);
+        expect(styleAt(span, 2)!.color!.a, greaterThan(0.5));
+      });
+
+      test('hides the marker of a heading inside a block quote', () {
+        const String text = '> ## Quoted heading';
+        final TextSpan span = buildSpan(text, theme: theme);
+        final int content = text.indexOf('Quoted');
+
+        // The quote indent stays so the heading clears the painted bar.
+        expect(hiddenAt(span, 0), isTrue);
+        expect(collapsedAt(span, 0), isFalse);
+        // The heading text keeps its size and stays visible.
+        expect(styleAt(span, content)?.fontSize, greaterThan(16));
+        expect(hiddenAt(span, content), isFalse);
+      });
+
+      test('collapses fences, table delimiters and rules', () {
+        const String text = '```dart\ncode\n```\n\n| a | b |\n| --- | --- |\n\n---';
+        final TextSpan span = buildSpan(text, theme: theme);
+
+        expect(span.toPlainText(), text);
+        // The opening fence, the closing fence and the delimiter row collapse.
+        expect(collapsedAt(span, 0), isTrue);
+        expect(collapsedAt(span, text.indexOf('```\n\n')), isTrue);
+        expect(collapsedAt(span, text.indexOf('| ---')), isTrue);
+        // Code content and table cells keep their styling.
+        expect(collapsedAt(span, text.indexOf('code')), isFalse);
+        expect(collapsedAt(span, text.indexOf('| a |')), isFalse);
+      });
+    });
+
+    test('applies heading sizes per level', () {      const String text = '# One\n## Two\n### Three';
       final TextSpan span = buildSpan(text);
       final double? h1 = styleAt(span, 2)?.fontSize;
       final double? h2 = styleAt(span, 8)?.fontSize;

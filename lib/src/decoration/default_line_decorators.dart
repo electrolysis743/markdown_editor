@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import '../model/markdown_block.dart';
 import '../model/markdown_line_info.dart';
 import '../theme/markdown_editor_theme.dart';
+import '../theme/marker_visibility.dart';
 import 'markdown_line_decorator.dart';
 
 /// Paints the background and the vertical bar of block quotes.
@@ -178,6 +179,152 @@ class ListGuideDecorator extends MarkdownLineDecorator {
   }
 }
 
+/// Paints list bullets and ordered numbers in the
+/// [MarkdownMarkerVisibility.hiddenExceptActiveLine] display mode.
+///
+/// In that mode the source markers of inactive lines are transparent but keep
+/// their width, so the rendered marker can be drawn exactly over them and the
+/// text stays where the rendered output puts it.
+class ListMarkerDecorator extends MarkdownLineDecorator {
+  /// Creates the decorator.
+  const ListMarkerDecorator({this.bullet = '\u2022'});
+
+  /// The glyph painted for bullet list items.
+  final String bullet;
+
+  @override
+  void paint(MarkdownDecorationContext context) {
+    if (!context.showSyntax ||
+        context.theme.markerVisibility !=
+            MarkdownMarkerVisibility.hiddenExceptActiveLine) {
+      return;
+    }
+    for (final MarkdownLineBox box in context.lineBoxes) {
+      final MarkdownLineInfo line = box.line;
+      if (context.isActiveLine(line)) {
+        continue;
+      }
+      final TextStyle style =
+          _markerStyle(context, context.theme.listMarker);
+      if (line.kind == MarkdownLineKind.bulletList) {
+        _paintGlyph(context, box, bullet, style, alignEnd: false);
+      } else if (line.kind == MarkdownLineKind.orderedList) {
+        _paintGlyph(context, box, line.listMarker, style, alignEnd: true);
+      }
+    }
+  }
+}
+
+/// Paints task list checkboxes in the
+/// [MarkdownMarkerVisibility.hiddenExceptActiveLine] display mode.
+///
+/// The `[x]` / `[ ]` characters of inactive lines stay transparent, so the
+/// checkbox appears exactly where the rendered output shows it. The same
+/// Material icons the preview uses are painted, so both panes agree.
+class TaskListDecorator extends MarkdownLineDecorator {
+  /// Creates the decorator.
+  const TaskListDecorator({
+    this.checkedIcon = Icons.check_box,
+    this.uncheckedIcon = Icons.check_box_outline_blank,
+  });
+
+  /// The icon painted for a checked task.
+  final IconData checkedIcon;
+
+  /// The icon painted for an unchecked task.
+  final IconData uncheckedIcon;
+
+  @override
+  void paint(MarkdownDecorationContext context) {
+    if (!context.showSyntax ||
+        context.theme.markerVisibility !=
+            MarkdownMarkerVisibility.hiddenExceptActiveLine) {
+      return;
+    }
+    for (final MarkdownLineBox box in context.lineBoxes) {
+      final MarkdownLineInfo line = box.line;
+      if (line.kind != MarkdownLineKind.taskList ||
+          context.isActiveLine(line)) {
+        continue;
+      }
+      final int bracket = line.text.indexOf('[');
+      if (bracket < 0) {
+        continue;
+      }
+      final IconData icon = line.taskChecked ? checkedIcon : uncheckedIcon;
+      _paintGlyph(
+        context,
+        box,
+        String.fromCharCode(icon.codePoint),
+        _iconStyle(context, icon),
+        alignEnd: false,
+        from: line.start + bracket,
+        to: line.start + bracket + 3,
+      );
+    }
+  }
+}
+
+/// The style that paints a Material icon glyph like an `Icon` widget would.
+TextStyle _iconStyle(MarkdownDecorationContext context, IconData icon) {
+  final TextStyle text = context.baseStyle.merge(context.theme.checkbox);
+  return TextStyle(
+    inherit: false,
+    fontFamily: icon.fontFamily,
+    package: icon.fontPackage,
+    fontSize: context.theme.checkbox?.fontSize ?? text.fontSize ?? 14,
+    color: text.color ?? const Color(0xFF000000),
+  );
+}
+
+/// The style used to paint replacement markers: the document base style plus
+/// the token style, with a guaranteed paint color.
+TextStyle _markerStyle(
+  MarkdownDecorationContext context,
+  TextStyle? token,
+) {
+  final TextStyle style = context.baseStyle.merge(token);
+  if (style.color != null) {
+    return style;
+  }
+  return style.copyWith(
+    color: context.theme.body?.color ?? const Color(0xFF000000),
+  );
+}
+
+/// Paints [glyph] centered in the marker area of [box], or right aligned to the
+/// content start when [alignEnd] is set.
+void _paintGlyph(
+  MarkdownDecorationContext context,
+  MarkdownLineBox box,
+  String glyph,
+  TextStyle style, {
+  required bool alignEnd,
+  int? from,
+  int? to,
+}) {
+  if (glyph.isEmpty) {
+    return;
+  }
+  final MarkdownLineInfo line = box.line;
+  final double left = context.caretX(from ?? line.start);
+  final double right = context.caretX(to ?? line.contentOffset);
+  if (right <= left) {
+    return;
+  }
+  final TextPainter painter = TextPainter(
+    text: TextSpan(text: glyph, style: style),
+    textDirection: context.textDirection,
+    textScaler: context.textScaler,
+  )..layout();
+  final double x = alignEnd
+      ? right - painter.width - (style.fontSize ?? 4) * 0.3
+      : left + (right - left - painter.width) / 2;
+  final double y = (box.rect.top + box.rect.bottom - painter.height) / 2;
+  painter.paint(context.canvas, Offset(x, y));
+  painter.dispose();
+}
+
 /// A debug decorator that paints the box of every line and block.
 ///
 /// Useful while building custom decorators or diagnosing alignment.
@@ -217,4 +364,6 @@ const List<MarkdownLineDecorator> kDefaultLineDecorators =
   FencedCodeBlockDecorator(),
   BlockquoteLineDecorator(),
   HorizontalRuleDecorator(),
+  ListMarkerDecorator(),
+  TaskListDecorator(),
 ];

@@ -27,8 +27,16 @@ enum MarkdownTokenType {
   /// The visible text of a link.
   link,
 
-  /// The destination part of a link or image.
+  /// A URL that the rendered output shows, such as the address of an autolink
+  /// (`<https://example.com>`). Styled through `MarkdownEditorTheme.linkUrl`.
   linkUrl,
+
+  /// The destination of an inline link or image, for example the `https://…`
+  /// of `[text](https://…)`.
+  ///
+  /// Unlike [linkUrl] it never appears in the rendered output, so marker
+  /// visibility policies collapse it together with the surrounding punctuation.
+  linkDestination,
 
   /// The alt text of an image.
   imageAlt,

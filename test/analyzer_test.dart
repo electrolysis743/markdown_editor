@@ -34,9 +34,17 @@ void main() {
       expect(layout.lines[0].kind, MarkdownLineKind.blockquote);
       expect(layout.lines[0].quoteDepth, 1);
       expect(layout.lines[1].quoteDepth, 2);
-      expect(layout.lines[1].contentStart, 4);
+      expect(layout.lines[1].contentStart, 12);
       expect(layout.blocks.single.kind, MarkdownBlockKind.quote);
       expect(layout.blocks.single.quoteDepth, 2);
+    });
+
+    test('records content offsets as absolute document offsets', () {
+      const String text = 'intro\n- one\n2. two\n> quote';
+      final MarkdownDocumentLayout layout = analyzer.analyze(text);
+      expect(layout.lines[1].contentOffset, text.indexOf('one'));
+      expect(layout.lines[2].contentOffset, text.indexOf('two'));
+      expect(layout.lines[3].contentOffset, text.indexOf('quote'));
     });
 
     test('parses bullet, ordered and task list items', () {
@@ -51,7 +59,7 @@ void main() {
       expect(layout.lines[2].isTask, isTrue);
       expect(layout.lines[2].taskChecked, isTrue);
       expect(layout.lines[3].taskChecked, isFalse);
-      expect(layout.lines[3].contentStart, 6);
+      expect(layout.lines[3].contentStart, 30);
       expect(layout.blocks.single.kind, MarkdownBlockKind.list);
     });
 

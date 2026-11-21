@@ -34,6 +34,8 @@ class MarkdownDecorationPainter extends CustomPainter {
     required this.textDirection,
     required this.scrollController,
     required this.textWidth,
+    this.showSyntax = true,
+    this.activeLineRange,
     required Listenable repaint,
   }) : super(repaint: repaint);
 
@@ -70,8 +72,22 @@ class MarkdownDecorationPainter extends CustomPainter {
   /// The width available to the text.
   final double textWidth;
 
+  /// Whether Markdown syntax is styled.
+  ///
+  /// It must match `MarkdownEditorController.syntaxHighlighting`, otherwise the
+  /// decorations would be laid out from spans the text field does not render.
+  final bool showSyntax;
+
+  /// The source range of the lines whose syntax markers stay visible.
+  ///
+  /// It must match the range the editing surface passes to the span engine,
+  /// otherwise collapsing markers would change the text layout and the
+  /// decorations would drift.
+  final TextRange? activeLineRange;
+
   List<MarkdownLineBox>? _cachedLineBoxes;
   List<MarkdownBlockBox>? _cachedBlockBoxes;
+  TextPainter? _cachedPainter;
 
   double get _scrollOffset =>
       scrollController.hasClients ? scrollController.offset : 0;
@@ -108,6 +124,19 @@ class MarkdownDecorationPainter extends CustomPainter {
       blockBoxes: blockBoxes,
       size: size,
       textDirection: textDirection,
+      textScaler: textScaler,
+      showSyntax: showSyntax,
+      baseStyle: baseStyle,
+      activeLineRange: activeLineRange,
+      caretX: (int offset) {
+        final TextPainter? painter = _cachedPainter;
+        if (painter == null) {
+          return 0;
+        }
+        return painter
+            .getOffsetForCaret(TextPosition(offset: offset), Rect.zero)
+            .dx;
+      },
     );
     for (final MarkdownLineDecorator decorator in extensions.activeLineDecorators) {
       decorator.paint(context);
@@ -127,6 +156,8 @@ class MarkdownDecorationPainter extends CustomPainter {
           theme: theme,
           baseStyle: baseStyle,
           rules: extensions.activeInlineRules,
+          showSyntax: showSyntax,
+          activeLineRange: activeLineRange,
         ),
       ),
       textDirection: textDirection,
@@ -134,6 +165,7 @@ class MarkdownDecorationPainter extends CustomPainter {
       strutStyle: strutStyle,
     );
     painter.layout(maxWidth: textWidth);
+    _cachedPainter = painter;
 
     final List<MarkdownLineInfo> lines = layout.lines;
     final double preferredHeight = painter.preferredLineHeight;
@@ -230,6 +262,8 @@ class MarkdownDecorationPainter extends CustomPainter {
         oldDelegate.textScaler != textScaler ||
         oldDelegate.textDirection != textDirection ||
         oldDelegate.scrollController != scrollController ||
-        oldDelegate.textWidth != textWidth;
+        oldDelegate.textWidth != textWidth ||
+        oldDelegate.showSyntax != showSyntax ||
+        oldDelegate.activeLineRange != activeLineRange;
   }
 }

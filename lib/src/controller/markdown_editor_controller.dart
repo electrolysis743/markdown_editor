@@ -11,6 +11,7 @@ import '../model/markdown_block.dart';
 import '../model/markdown_document_layout.dart';
 import '../model/markdown_line_info.dart';
 import '../theme/markdown_editor_theme.dart';
+import '../theme/marker_visibility.dart';
 import 'markdown_history.dart';
 
 /// A [TextEditingController] that renders Markdown while editing it.
@@ -115,6 +116,22 @@ class MarkdownEditorController extends TextEditingController {
     return TextRange(start: line.start, end: line.end);
   }
 
+  /// The source range spanning every line touched by the selection, or `null`
+  /// when the selection is unset.
+  ///
+  /// This is the "active" range of
+  /// [MarkdownMarkerVisibility.hiddenExceptActiveLine]: markers stay visible on
+  /// these lines and collapse everywhere else. The editing surface passes the
+  /// same range to `MarkdownDecorationPainter` so decorations keep matching the
+  /// text layout.
+  TextRange? get selectionLineRange {
+    final TextSelection current = selection;
+    if (!current.isValid) {
+      return null;
+    }
+    return layout.lineRangeForSelection(current);
+  }
+
   /// The lines touched by the current selection.
   List<MarkdownLineInfo> get selectedLines {
     final MarkdownDocumentLayout parsed = layout;
@@ -157,13 +174,20 @@ class MarkdownEditorController extends TextEditingController {
     }
 
     final MarkdownLineAnalyzer analyzer = extensions.lineAnalyzer ?? _analyzer;
+    final MarkdownDocumentLayout parsed = layoutFor(analyzer);
+    final bool revealActiveLine = theme.markerVisibility ==
+        MarkdownMarkerVisibility.hiddenExceptActiveLine;
+    final TextSelection current = selection;
     return extensions.engine.build(
       MarkdownSpanBuildContext(
         text: text,
-        layout: layoutFor(analyzer),
+        layout: parsed,
         theme: theme,
         baseStyle: baseStyle,
         rules: extensions.activeInlineRules,
+        activeLineRange: revealActiveLine && current.isValid
+            ? parsed.lineRangeForSelection(current)
+            : null,
         composing: withComposing ? value.composing : null,
       ),
     );

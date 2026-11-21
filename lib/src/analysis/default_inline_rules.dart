@@ -133,7 +133,8 @@ class ImageInlineRule extends MarkdownInlineRule {
       scan.add(altStart, altEnd, MarkdownTokenType.imageAlt,
           priority: priority);
       scan.addMarker(altEnd, urlStart, priority: priority);
-      scan.add(urlStart, urlStart + url.length, MarkdownTokenType.linkUrl,
+      scan.add(urlStart, urlStart + url.length,
+          MarkdownTokenType.linkDestination,
           priority: priority);
       scan.addMarker(urlStart + url.length, match.end, priority: priority);
       scan.mask(match.start, match.end, priority: priority);
@@ -174,7 +175,8 @@ class LinkInlineRule extends MarkdownInlineRule {
       scan.add(labelStart, labelEnd, MarkdownTokenType.link,
           priority: priority);
       scan.addMarker(labelEnd, urlStart, priority: priority);
-      scan.add(urlStart, urlStart + url.length, MarkdownTokenType.linkUrl,
+      scan.add(urlStart, urlStart + url.length,
+          MarkdownTokenType.linkDestination,
           priority: priority);
       scan.addMarker(urlStart + url.length, match.end, priority: priority);
       scan.mask(match.start, match.end, priority: priority);
@@ -195,7 +197,7 @@ class LinkInlineRule extends MarkdownInlineRule {
           priority: priority);
       scan.addMarker(labelEnd, labelEnd + 2, priority: priority);
       scan.add(referenceStart, referenceStart + reference.length,
-          MarkdownTokenType.linkUrl,
+          MarkdownTokenType.linkDestination,
           priority: priority);
       scan.addMarker(
           referenceStart + reference.length, match.end, priority: priority);

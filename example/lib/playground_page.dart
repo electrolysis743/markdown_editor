@@ -20,7 +20,8 @@ class _PlaygroundPageState extends State<PlaygroundPage> {
       MarkdownEditorController(text: kSampleMarkdown);
 
   MarkdownEditorMode _mode = MarkdownEditorMode.split;
-  MarkdownMarkerVisibility _visibility = MarkdownMarkerVisibility.dimmed;
+  MarkdownMarkerVisibility _visibility =
+      MarkdownMarkerVisibility.hiddenExceptActiveLine;
   bool _showToolbar = true;
 
   @override
@@ -119,6 +120,10 @@ class _PlaygroundPageState extends State<PlaygroundPage> {
               DropdownMenuItem<MarkdownMarkerVisibility>(
                 value: MarkdownMarkerVisibility.hidden,
                 child: Text('Markers: hidden'),
+              ),
+              DropdownMenuItem<MarkdownMarkerVisibility>(
+                value: MarkdownMarkerVisibility.hiddenExceptActiveLine,
+                child: Text('Markers: active line only'),
               ),
             ],
           ),

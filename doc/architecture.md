@@ -22,8 +22,13 @@ accessibility.
 
 The cost is that syntax markers cannot be removed from the layout: the span
 text must stay byte-identical to the controller text, otherwise caret offsets
-and selections would drift. The editor therefore styles markers instead of
-deleting them (`MarkdownMarkerVisibility`).
+and selections would drift. That constraint has two answers. The editor can
+*style* markers instead of deleting them (`MarkdownMarkerVisibility`). It can
+also *collapse* them without touching the characters, by painting them with a
+zero font size: a zero-glyph advances by nothing, so the line reads as its
+rendered result while every offset still points at the same character. The
+`hiddenExceptActiveLine` visibility uses that trick to reveal the syntax only on
+the line being edited.
 
 ## Pipeline
 
@@ -91,6 +96,11 @@ Custom rules get a `MarkdownInlineScan` that exposes the full document text
 (absolute offsets), the current line, the layout, `isEscaped`, `isMasked`,
 `matches(RegExp)` (region-clipped) and `add`/`mask`.
 
+Content that never appears in the rendered output is marked as such: the `(url)`
+of `[text](url)`, the `(url)` of an image and the `[label]` of a reference link
+are emitted as `MarkdownTokenType.linkDestination`, while an autolink keeps its
+URL visible as `MarkdownTokenType.linkUrl`.
+
 ### Stage 3 — `MarkdownSpanEngine`
 
 `DefaultMarkdownSpanEngine` turns the layout into a `TextSpan`:
@@ -102,6 +112,19 @@ Custom rules get a `MarkdownInlineScan` that exposes the full document text
 4. split the line at every range boundary, merge the active ranges into a style
    (ascending priority, so later ranges win), and emit `TextSpan`s;
 5. append the exact line ending characters so the span text equals the source.
+
+`MarkdownSpanBuildContext.activeLineRange` tells the engine which lines are
+being edited. When `MarkdownEditorTheme.markerVisibility` is
+`hiddenExceptActiveLine`, markers outside that range are not painted, which
+removes the syntax from the visual result while keeping the span text identical
+to the source:
+
+* `MarkdownEditorTheme.collapsedMarker` (`fontSize: 0`) removes inline markers,
+  heading prefixes and whole-line markers (fences, table delimiters) entirely;
+* `MarkdownEditorTheme.hiddenMarker` (transparent, width preserved) hides block
+  prefixes — bullets, numbers, checkboxes, block quote markers — so the text
+  keeps the position the rendered output gives it while the decoration layer
+  draws the rendered marker in the reserved space.
 
 Because the engine is responsible for the whole span, replacing it lets you
 render Markdown with inline widgets, custom `TextStyle` resolution or any other
@@ -132,7 +155,18 @@ layout, boxes and text direction.
 - above it, an empty-state/hint layer.
 
 All three share the same `MarkdownEditorController`, text style, text scaler,
-text direction and width, which is what keeps decorations aligned.
+text direction and width, which is what keeps decorations aligned. The surface
+also passes `controller.selectionLineRange` and `showSyntax` to the decoration
+painter, so both layers style and collapse the same markers on the same lines;
+otherwise the text would wrap differently and the quote bars or code
+backgrounds would drift.
+
+`MarkdownDecorationContext` exposes the geometry decorators need: line and block
+boxes, `activeLineRange`, `baseStyle`, and `caretX(offset)`, which returns the
+horizontal position of a source offset. `ListMarkerDecorator` and
+`TaskListDecorator` use it to paint `•`, `1.` and the Material checkbox icons
+exactly over the hidden block markers of inactive lines — the same glyphs the
+preview uses, so both panes agree.
 
 ## Commands, toolbar and shortcuts
 

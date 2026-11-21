@@ -361,7 +361,7 @@ class DefaultMarkdownLineAnalyzer implements MarkdownLineAnalyzer {
       ..kind = MarkdownLineKind.fencedCode
       ..fenceDepth = fence.fenceDepth
       ..fenceLanguage = fence.language
-      ..contentStart = draft.end;
+      ..contentStart = draft.text.length;
   }
 
   bool _closesFence(String lineText, _FenceState fence) {
@@ -512,7 +512,9 @@ class _LineDraft {
       fenceLanguage: fenceLanguage,
       fenceDepth: fenceDepth,
       isTableDelimiter: isTableDelimiter,
-      contentStart: contentStart,
+      // The draft records the content start relative to the line; the model
+      // exposes absolute document offsets like every other offset it holds.
+      contentStart: contentStart == null ? null : start + contentStart!,
       blockIndex: blockIndex,
       hasNewline: hasNewline,
     );

@@ -29,12 +29,17 @@ without forking the package.
 
 - **WYSIWYG editing on plain source** — the document value is always valid
   Markdown, so it can be saved, diffed or sent anywhere.
+- **Formatted until you edit it** —
+  `MarkdownMarkerVisibility.hiddenExceptActiveLine` renders every line as its
+  final result and reveals the Markdown syntax only on the line under the
+  caret.
 - **Live preview** — `MarkdownEditorMode.preview` and `MarkdownEditorMode.split`
   render through `flutter_markdown_plus` with a style sheet derived from the
   editor theme, so editing and previewing look identical.
-- **Block decorations** — quote bars, fenced code backgrounds, list guides and
-  themed horizontal rules are painted behind the text, aligned with the same
-  text layout the editor uses.
+- **Block decorations** — quote bars, fenced code backgrounds, list guides,
+  themed horizontal rules and, in the formatted mode, the rendered list bullets,
+  numbers and checkboxes are painted behind the text, aligned with the same text
+  layout the editor uses.
 - **Toolbar + commands** — undo/redo, headings, bold, italic, strikethrough,
   highlight, inline code, links, images, quotes, bullet/ordered/task lists,
   code blocks, tables and rules. Add your own `MarkdownCommand`s.
@@ -136,6 +141,28 @@ by `MarkdownEditorTheme.markerVisibility`:
 - `dimmed` — syntax faded (default).
 - `hidden` — syntax transparent (layout stays stable because the characters
   keep their width).
+- `hiddenExceptActiveLine` — the *formatted until you edit it* mode: the
+  document reads as its rendered result and the syntax appears only on the
+  lines the caret or selection touches. Inline markers (`**`, `` ` ``,
+  `~~`, `==`, link destinations) and heading prefixes collapse to zero width, so
+  `**bold**` reads as **bold** and `## Title` starts at the margin. List bullets,
+  ordered numbers, task checkboxes and block quote markers keep their width but
+  are redrawn by the decoration layer as `•`, `1.`, the same Material checkbox
+  icons the preview uses, and the quote bar, so those lines line up with the
+  rendered output.
+
+```dart
+MarkdownEditor(
+  theme: const MarkdownEditorTheme(
+    markerVisibility: MarkdownMarkerVisibility.hiddenExceptActiveLine,
+  ),
+)
+```
+
+Collapsed markers are painted with a zero font size rather than removed: the
+characters stay in the text, so the caret, selection, IME, undo and
+accessibility keep using the exact document offsets. The mode works in every
+layout mode, including `split`.
 
 ## Customization
 
@@ -351,8 +378,14 @@ to render with inline widgets).
 
 ## Limitations
 
-- Markdown markers remain part of the text, so "hidden" markers still occupy
-  their width. True zero-width hiding would break caret and selection offsets.
+- Markdown markers remain part of the text: they are styled or hidden, never
+  deleted. In the formatted mode inline markers collapse by taking no space,
+  which shifts the caret line horizontally when it gains or loses its syntax —
+  the same trade-off every live-preview editor makes.
+- Block markers keep their width in the formatted mode, so the text does not
+  move when the caret enters a list or quote line; the editor paints `•`, `1.`,
+  the Material checkbox icons and the quote bar over the hidden marker with
+  `ListMarkerDecorator` / `TaskListDecorator`.
 - Setext headings (`Title` + `=====`) are shown as paragraphs in the editor;
   the preview still renders them. ATX headings are fully supported.
 - The editing surface styles lines, not nested inline widgets: images are shown

@@ -5,6 +5,50 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.0] - 2026-11-21
+
+### Added
+
+- `MarkdownMarkerVisibility.hiddenExceptActiveLine`: a new display mode that
+  renders every line as its formatted result and reveals the Markdown syntax
+  only on the lines the caret or selection touches. Inline markers, heading
+  prefixes, link and image destinations, fences and table delimiters collapse to
+  zero width with `MarkdownEditorTheme.collapsedMarker`; block prefixes (list
+  bullets, ordered numbers, task checkboxes, block quote markers) keep their
+  width and are painted transparently with `MarkdownEditorTheme.hiddenMarker`.
+  The span text stays identical to the document, so caret, selection, IME and
+  accessibility offsets keep working.
+- `ListMarkerDecorator` and `TaskListDecorator`, enabled by default: they paint
+  the rendered `•`, `1.` and the same Material checkbox icons the preview uses
+  for the hidden block markers.
+  `MarkdownDecorationContext` gained `activeLineRange`, `baseStyle`,
+  `textScaler`, `showSyntax` and `caretX(offset)` so custom decorators can place
+  replacement glyphs exactly.
+- `MarkdownTokenType.linkDestination`, used by the link and image rules for the
+  part of the source that never appears in the rendered output, so marker
+  policies can collapse it. It is styled like `linkUrl`.
+- `MarkdownSpanBuildContext.activeLineRange`, so custom span engines can see
+  which lines are being edited, and `MarkdownEditorController.selectionLineRange`
+  for the same range as absolute offsets.
+- `MarkdownDecorationPainter.activeLineRange` and `showSyntax`, so decorations
+  are laid out from the same spans as the text, in every mode.
+- `MarkdownEditingSurface` now publishes an explicitly passed `theme` or
+  `extensions` to the text field, so the rendered spans and the decorations use
+  the same pipeline when the surface is embedded without a `MarkdownEditor`.
+
+### Fixed
+
+- `MarkdownLineInfo.contentStart` (and therefore `contentOffset`) is now an
+  absolute document offset as documented. It used to be relative to the line
+  start, which left list, task list and block quote markers of every line after
+  the first unstyled and made inline rules scan a region larger than the line.
+- Decorations no longer drift from the text in source mode: the painter received
+  styled spans while the field rendered plain text, so lines wrapped
+  differently and code backgrounds or quote bars landed on the wrong lines.
+- `MarkdownEditorTheme.resolveBody` now fills in the color and line height the
+  text field would use, so a body style without them no longer lays out the
+  decorations at a different height than the text.
+
 ## [0.2.2] - 2026-11-21
 
 ### Changed

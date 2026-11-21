@@ -2,7 +2,7 @@ name: wysiwyg_markdown_editor
 description: >-
   An extensible WYSIWYG Markdown editor for Flutter with in-place styling, a
   live preview and fully replaceable commands, builders and syntax rules.
-version: 0.2.2
+version: 0.3.0
 # Open source under GPL-3.0. See LICENSE.
 repository: https://github.com/electrolysis743/markdown_editor
 # homepage: https://github.com/electrolysis743/markdown_editor

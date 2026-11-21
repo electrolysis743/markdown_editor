@@ -21,6 +21,11 @@ import 'widgets/markdown_preview.dart';
 /// behind the text. A live preview rendered by `flutter_markdown_plus` shares
 /// the same theme.
 ///
+/// With `MarkdownEditorTheme(markerVisibility:
+/// MarkdownMarkerVisibility.hiddenExceptActiveLine)` the document reads like its
+/// rendered result and the Markdown syntax appears only on the line under the
+/// caret.
+///
 /// Every part is replaceable:
 ///
 /// * [theme] styles every token; a partial theme keeps the defaults.

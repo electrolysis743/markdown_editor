@@ -223,5 +223,17 @@ void main() {
       expect(range.end, 5);
       expect(controller.wordRangeAt(6), isNull);
     });
+
+    test('reports the lines touched by the selection', () {
+      controller.text = 'a\nbb\nccc';
+      expect(controller.selectionLineRange, isNull);
+
+      controller.selection = const TextSelection.collapsed(offset: 2);
+      expect(controller.selectionLineRange, const TextRange(start: 2, end: 4));
+
+      controller.selection =
+          const TextSelection(baseOffset: 0, extentOffset: 6);
+      expect(controller.selectionLineRange, const TextRange(start: 0, end: 8));
+    });
   });
 }

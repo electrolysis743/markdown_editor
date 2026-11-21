@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import '../model/markdown_document_layout.dart';
 import '../model/markdown_line_info.dart';
 import '../theme/markdown_editor_theme.dart';
+import '../theme/marker_visibility.dart';
 import 'default_inline_rules.dart';
 import 'markdown_inline_rule.dart';
 import 'markdown_token_type.dart';
@@ -19,6 +20,7 @@ class MarkdownSpanBuildContext {
     required this.baseStyle,
     this.rules = kDefaultInlineRules,
     this.showSyntax = true,
+    this.activeLineRange,
     this.composing,
   });
 
@@ -40,6 +42,14 @@ class MarkdownSpanBuildContext {
 
   /// When `false`, the source is rendered as plain text (source mode).
   final bool showSyntax;
+
+  /// The absolute source range of the lines whose syntax markers stay visible.
+  ///
+  /// `DefaultMarkdownSpanEngine` uses it for
+  /// [MarkdownMarkerVisibility.hiddenExceptActiveLine]: markers on every line
+  /// outside this range are collapsed to zero width. `null` means no line is
+  /// being edited, so every marker collapses.
+  final TextRange? activeLineRange;
 
   /// The composing region of the current IME session, if any.
   final TextRange? composing;
@@ -107,6 +117,13 @@ class DefaultMarkdownSpanEngine implements MarkdownSpanEngine {
           }
         }
         _addComposingRange(context, ranges);
+        ranges.addAll(
+          _markerVisibilityRanges(
+            line: line,
+            ranges: ranges,
+            context: context,
+          ),
+        );
         spans.addAll(
           _buildLineSpans(
             text: text,
@@ -218,6 +235,88 @@ class DefaultMarkdownSpanEngine implements MarkdownSpanEngine {
     }
   }
 
+  /// The style ranges that implement
+  /// [MarkdownMarkerVisibility.hiddenExceptActiveLine] on [line].
+  ///
+  /// Empty when the mode is off or [line] is inside
+  /// [MarkdownSpanBuildContext.activeLineRange]. Elsewhere markers are not
+  /// painted, so the line reads as its rendered result:
+  ///
+  /// * inline markers, heading prefixes and whole-line markers (fences, table
+  ///   delimiters) are collapsed to zero width;
+  /// * list bullets, ordered numbers, task checkboxes and block quote markers
+  ///   are hidden but keep their width, so text sits where the rendered output
+  ///   puts it and the decoration layer can draw `•`, `1.`, `☑` and the quote
+  ///   bar in the reserved space.
+  List<MarkdownStyleRange> _markerVisibilityRanges({
+    required MarkdownLineInfo line,
+    required List<MarkdownStyleRange> ranges,
+    required MarkdownSpanBuildContext context,
+  }) {
+    if (context.theme.markerVisibility !=
+        MarkdownMarkerVisibility.hiddenExceptActiveLine) {
+      return const <MarkdownStyleRange>[];
+    }
+    final TextRange? active = context.activeLineRange;
+    if (active != null && line.end >= active.start && line.start <= active.end) {
+      return const <MarkdownStyleRange>[];
+    }
+
+    final List<MarkdownStyleRange> policy = <MarkdownStyleRange>[];
+    for (final MarkdownStyleRange range in ranges) {
+      if (range.isMask || !_isMarkerToken(range.token)) {
+        continue;
+      }
+      final bool inline = range.start >= line.contentOffset;
+      final bool collapse = inline ||
+          line.kind == MarkdownLineKind.fencedCode ||
+          line.kind == MarkdownLineKind.table ||
+          // A heading inside a block quote keeps the quote indent, otherwise
+          // its text would sit on top of the painted quote bar.
+          (line.kind == MarkdownLineKind.heading && line.quoteDepth == 0);
+      if (!collapse && line.kind == MarkdownLineKind.horizontalRule) {
+        // The literal `---` is the only visible part of the rule here.
+        continue;
+      }
+      policy.add(
+        MarkdownStyleRange(
+          start: range.start,
+          end: range.end,
+          token: MarkdownTokenType.marker,
+          style: collapse
+              ? MarkdownEditorTheme.collapsedMarker
+              : MarkdownEditorTheme.hiddenMarker,
+          priority: 900,
+        ),
+      );
+    }
+    return policy;
+  }
+
+  /// Whether [token] styles punctuation that the editor can collapse.
+  bool _isMarkerToken(MarkdownTokenType token) {
+    switch (token) {
+      case MarkdownTokenType.marker:
+      case MarkdownTokenType.listMarker:
+      case MarkdownTokenType.checkbox:
+      case MarkdownTokenType.tableDelimiter:
+      case MarkdownTokenType.linkDestination:
+        return true;
+      case MarkdownTokenType.strong:
+      case MarkdownTokenType.emphasis:
+      case MarkdownTokenType.strikethrough:
+      case MarkdownTokenType.code:
+      case MarkdownTokenType.codeBlock:
+      case MarkdownTokenType.link:
+      case MarkdownTokenType.linkUrl:
+      case MarkdownTokenType.imageAlt:
+      case MarkdownTokenType.highlight:
+      case MarkdownTokenType.quote:
+      case MarkdownTokenType.custom:
+        return false;
+    }
+  }
+
   void _addComposingRange(
     MarkdownSpanBuildContext context,
     List<MarkdownStyleRange> ranges,
@@ -289,7 +388,7 @@ class DefaultMarkdownSpanEngine implements MarkdownSpanEngine {
       TextStyle style = baseStyle;
       for (final MarkdownStyleRange range in active) {
         if (range.token == MarkdownTokenType.marker) {
-          style = style.merge(theme.markerStyle(baseStyle));
+          style = style.merge(range.style ?? theme.markerStyle(baseStyle));
         } else if (range.style != null) {
           style = style.merge(range.style!);
         } else {
