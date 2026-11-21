@@ -97,6 +97,11 @@ class MarkdownDecorationPainter extends CustomPainter {
     if (layout.text.isEmpty) {
       return;
     }
+    // Line boxes live in text coordinates, so scrolling moves them above or
+    // below the viewport. Without a clip the decorations would spill over the
+    // toolbar and the rest of the app.
+    canvas.save();
+    canvas.clipRect(Offset.zero & size);
     final double offset = _scrollOffset;
     final List<MarkdownLineBox> sourceLineBoxes = _lineBoxes(size);
     final List<MarkdownBlockBox> sourceBlockBoxes = _blockBoxes(sourceLineBoxes, size);
@@ -141,6 +146,7 @@ class MarkdownDecorationPainter extends CustomPainter {
     for (final MarkdownLineDecorator decorator in extensions.activeLineDecorators) {
       decorator.paint(context);
     }
+    canvas.restore();
   }
 
   List<MarkdownLineBox> _lineBoxes(Size size) {
